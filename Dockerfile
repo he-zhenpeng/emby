@@ -1,16 +1,18 @@
-# 明确使用官方最新版作为基础镜像
+# 使用官方镜像
 FROM emby/embyserver:latest
 
 USER root
 
-# 使用 apk 安装必要工具并集成 rclone
-RUN apk update && apk add --no-cache \
-    curl \
-    unzip \
-    ca-certificates \
-    bash \
-    && curl https://rclone.org/install.sh | bash \
-    && rm -rf /var/cache/apk/*
+# 手动下载 rclone 静态二进制文件 (针对 x86_64 架构)
+# 如果你的 Zeabur 环境是 ARM，请将链接中的 amd64 改为 arm
+ADD https://downloads.rclone.org/v1.69.1/rclone-v1.69.1-linux-amd64.zip /tmp/rclone.zip
 
-# 这里的逻辑是：启动时先解码 Rclone 配置，然后把控制权交给 Emby 原生的 /init 进程
-ENTRYPOINT ["/bin/bash", "-c", "if [ -n \"$RCLONE_CONFIG_BASE64\" ]; then mkdir -p /root/.config/rclone/ && echo \"$RCLONE_CONFIG_BASE64\" | base64 -d > /root/.config/rclone/rclone.conf; fi; exec /init"]
+# 利用镜像内自带的 busybox 或基础 shell 进行解压
+RUN cd /tmp && \
+    unzip rclone.zip && \
+    cp /tmp/rclone-*-linux-amd64/rclone /usr/bin/rclone && \
+    chmod +x /usr/bin/rclone && \
+    rm -rf /tmp/*
+
+# 启动逻辑
+ENTRYPOINT ["/bin/sh", "-c", "if [ -n \"$RCLONE_CONFIG_BASE64\" ]; then mkdir -p /root/.config/rclone/ && echo \"$RCLONE_CONFIG_BASE64\" | base64 -d > /root/.config/rclone/rclone.conf; fi; exec /init"]
