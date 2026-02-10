@@ -1,5 +1,8 @@
 # 使用 Emby 官方镜像
 FROM emby/embyserver:latest
+FROM rclone/rclone:latest AS rclone
+
+ARG RCLONE_CONFIG_BASE64=$RCLONE_CONFIG_BASE64
 
 USER root
 
