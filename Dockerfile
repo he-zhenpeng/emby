@@ -6,15 +6,7 @@ ARG RCLONE_CONFIG_BASE64=$RCLONE_CONFIG_BASE64
 
 USER root
 
-# Alpine 使用 apk 而不是 apt-get
-# 安装 curl, unzip, ca-certificates 和 bash (rclone 脚本需要 bash)
-RUN apk update && apk add --no-cache \
-    curl \
-    unzip \
-    ca-certificates \
-    bash \
-    && curl https://rclone.org/install.sh | bash \
-    && rm -rf /var/cache/apk/*
+
 
 # 创建启动脚本
 RUN echo '#!/bin/bash\n\
