@@ -8,13 +8,5 @@ USER root
 
 
 
-# 创建启动脚本
-RUN echo '#!/bin/bash\n\
-if [ -n "$RCLONE_CONFIG_BASE64" ]; then\n\
-    echo "正在解码 rclone 配置..."\n\
-    mkdir -p /root/.config/rclone/\n\
-    echo "$RCLONE_CONFIG_BASE64" | base64 -d > /root/.config/rclone/rclone.conf\n\
-fi\n\
-exec /init' > /entrypoint.sh && chmod +x /entrypoint.sh
-
-ENTRYPOINT ["/entrypoint.sh"]
+# 直接在 ENTRYPOINT 里写逻辑，不再调用外部 /entrypoint.sh 文件
+ENTRYPOINT ["/bin/bash", "-c", "if [ -n \"$RCLONE_CONFIG_BASE64\" ]; then mkdir -p /root/.config/rclone/ && echo \"$RCLONE_CONFIG_BASE64\" | base64 -d > /root/.config/rclone/rclone.conf && echo 'Rclone config restored.'; fi; exec /init"]
